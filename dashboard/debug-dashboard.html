@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-info { background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .error { background: #f8d7da; border-left-color: #dc3545; }
+        .success { background: #d4edda; border-left-color: #28a745; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; cursor: pointer; }
+        th:hover { background: #e9ecef; }
+        .sort-btn { padding: 8px 16px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .sort-btn:hover { background: #0056b3; }
+        .sort-btn.active { background: #28a745; }
+    </style>
+</head>
+<body>
+    <h1>Debug Dashboard</h1>
+    
+    <div id="debugInfo" class="debug-info">
+        <h3>Debug Information</h3>
+        <div id="debugLog"></div>
+    </div>
+
+    <div>
+        <h2>Sort Controls</h2>
+        <button class="sort-btn" onclick="sortTable('overall')">Sort by Overall Score</button>
+        <button class="sort-btn" onclick="sortTable('funding')">Sort by Funding</button>
+        <button class="sort-btn" onclick="sortTable('city')">Sort by City</button>
+    </div>
+
+    <div>
+        <h2>City Rankings</h2>
+        <table id="rankingTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('city')">City</th>
+                    <th onclick="sortTable('overall')">Overall Score</th>
+                    <th onclick="sortTable('funding')">Funding</th>
+                    <th onclick="sortTable('supply')">Housing Supply</th>
+                </tr>
+            </thead>
+            <tbody id="rankingTableBody"></tbody>
+        </table>
+    </div>
+
+    <div>
+        <h2>Test Chart</h2>
+        <canvas id="testChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        // Debug logging function
+        function debugLog(message, type = 'info') {
+            const log = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            log.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        // City data
+        const cityData = [
+            { city: 'New York City', overall: 86.0, funding: 95.0, supply: 85.0, stability: 75.0, policy: 90.0, transparency: 85.0, region: 'east' },
+            { city: 'Los Angeles', overall: 78.0, funding: 85.0, supply: 80.0, stability: 70.0, policy: 75.0, transparency: 80.0, region: 'west' },
+            { city: 'Chicago', overall: 58.3, funding: 45.0, supply: 57.0, stability: 65.2, policy: 79.9, transparency: 100.0, region: 'midwest' },
+            { city: 'Houston', overall: 77.9, funding: 70.0, supply: 75.0, stability: 100.0, policy: 65.0, transparency: 87.9, region: 'south' },
+            { city: 'Phoenix', overall: 65.2, funding: 60.0, supply: 70.0, stability: 55.0, policy: 70.0, transparency: 75.0, region: 'south' }
+        ];
+
+        let currentSort = { column: 'overall', direction: 'desc' };
+
+        function sortTable(column) {
+            debugLog(`sortTable called with column: ${column}`);
+            
+            try {
+                if (currentSort.column === column) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = column;
+                    currentSort.direction = 'desc';
+                }
+                
+                debugLog(`Sorting by ${column} in ${currentSort.direction} order`);
+                
+                // Update button states
+                document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+                if (event && event.target) {
+                    event.target.classList.add('active');
+                }
+                
+                populateTable();
+                debugLog('Table populated successfully', 'success');
+            } catch (error) {
+                debugLog(`Error in sortTable: ${error.message}`, 'error');
+            }
+        }
+
+        function populateTable() {
+            debugLog('populateTable called');
+            
+            try {
+                let filteredData = [...cityData];
+                
+                // Sort data
+                filteredData.sort((a, b) => {
+                    let aVal = a[currentSort.column];
+                    let bVal = b[currentSort.column];
+                    
+                    if (currentSort.column === 'city') {
+                        aVal = aVal.toLowerCase();
+                        bVal = bVal.toLowerCase();
+                    }
+                    
+                    if (currentSort.direction === 'asc') {
+                        return aVal > bVal ? 1 : -1;
+                    } else {
+                        return aVal < bVal ? 1 : -1;
+                    }
+                });
+
+                // Populate table
+                const tbody = document.getElementById('rankingTableBody');
+                tbody.innerHTML = '';
+
+                filteredData.forEach((city, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${city.city}</td>
+                        <td>${city.overall}</td>
+                        <td>${city.funding}</td>
+                        <td>${city.supply}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                debugLog(`Table populated with ${filteredData.length} cities`, 'success');
+            } catch (error) {
+                debugLog(`Error in populateTable: ${error.message}`, 'error');
+            }
+        }
+
+        function createTestChart() {
+            debugLog('Creating test chart');
+            
+            try {
+                const ctx = document.getElementById('testChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: cityData.map(city => city.city),
+                        datasets: [{
+                            label: 'Overall Score',
+                            data: cityData.map(city => city.overall),
+                            backgroundColor: '#2E86AB'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+                debugLog('Chart created successfully', 'success');
+            } catch (error) {
+                debugLog(`Error creating chart: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            debugLog('Page loaded, initializing...');
+            
+            try {
+                populateTable();
+                createTestChart();
+                debugLog('Initialization complete', 'success');
+            } catch (error) {
+                debugLog(`Initialization error: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

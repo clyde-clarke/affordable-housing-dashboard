@@ -1,0 +1,2448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affordable Housing Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            color: #ffffff;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.7;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+        }
+
+        .nav {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+            font-size: 0.9rem;
+            color: #ffffff;
+            letter-spacing: 0.01em;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+        }
+
+        .page-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .grid-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .grid-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .grid-item h3 {
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 20px;
+            color: #ffffff;
+            letter-spacing: 0.01em;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .filter-group label {
+            font-weight: 400;
+            color: #ffffff;
+            font-size: 0.9rem;
+            letter-spacing: 0.01em;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #ffffff;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sort-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .sort-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .sort-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .ranking-table th {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            padding: 16px;
+            text-align: left;
+            font-weight: 400;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.9rem;
+            letter-spacing: 0.01em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ranking-table th:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .ranking-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        .ranking-table tr:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .rank-1 { background: #FFD700; }
+        .rank-2 { background: #C0C0C0; }
+        .rank-3 { background: #CD7F32; }
+        .rank-4-10 { background: #2E86AB; }
+        .rank-11-plus { background: #6c757d; }
+
+        .score-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .score-excellent { background: linear-gradient(90deg, #28A745, #20c997); }
+        .score-good { background: linear-gradient(90deg, #17a2b8, #2E86AB); }
+        .score-fair { background: linear-gradient(90deg, #FFC107, #fd7e14); }
+        .score-poor { background: linear-gradient(90deg, #DC3545, #e83e8c); }
+
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 200px;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .filter-tag {
+            padding: 4px 8px;
+            background: #e9ecef;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .filter-tag.active {
+            background: #2E86AB;
+            color: white;
+        }
+
+        .filter-tag:hover {
+            background: #dee2e6;
+        }
+
+        .filter-tag.active:hover {
+            background: #1e5f7a;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #ffffff;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 400;
+        }
+
+        /* Interactive Controls Styling */
+        .control-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .control-label {
+            display: block;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .control-row .control-label {
+            margin-bottom: 0;
+            min-width: 120px;
+        }
+
+        /* City Tags */
+        .city-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .city-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            color: #ffffff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .city-tag:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .remove-tag {
+            margin-left: 8px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .remove-tag:hover {
+            color: #ff6b6b;
+        }
+
+        /* Dropdowns */
+        .city-dropdown, .dimension-dropdown, .sort-dropdown {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .city-dropdown:focus, .dimension-dropdown:focus, .sort-dropdown:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Checkboxes */
+        .dimension-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .checkbox-label:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            accent-color: #2E86AB;
+        }
+
+        /* Chart Captions */
+        .chart-caption {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            margin-top: 15px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>An Interactive Visualization of Affordable Housing Performance</h1>
+            <p>Using data from 24 major US cities, this visualization shows the variety and effectiveness of affordable housing initiatives across five key indicators.</p>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <li class="nav-item active" onclick="showPage('executive-summary')">Executive Summary</li>
+                <li class="nav-item" onclick="showPage('funding-analysis')">Funding Analysis</li>
+                <li class="nav-item" onclick="showPage('housing-supply')">Housing Supply</li>
+                <li class="nav-item" onclick="showPage('resident-stability')">Resident Stability</li>
+                <li class="nav-item" onclick="showPage('policy-implementation')">Policy Implementation</li>
+                <li class="nav-item" onclick="showPage('transparency-data-access')">Transparency & Data Access</li>
+                <li class="nav-item" onclick="showPage('comparative-analysis')">Comparative Analysis</li>
+                <li class="nav-item" onclick="showPage('regional-trends')">Regional Trends</li>
+                <li class="nav-item" onclick="showPage('data-quality')">Data Quality</li>
+                <li class="nav-item" onclick="showPage('recommendations')">Recommendations</li>
+            </ul>
+        </nav>
+
+        <!-- Executive Summary Page -->
+        <div id="executive-summary" class="page-content active">
+            <!-- Controls -->
+            <div class="controls-container">
+                <div class="filter-group">
+                    <label for="searchInput">Search Cities:</label>
+                    <input type="text" id="searchInput" class="search-box" placeholder="Type city name...">
+                    
+                    <label for="scoreFilter">Filter by Score:</label>
+                    <select id="scoreFilter">
+                        <option value="all">All Scores</option>
+                        <option value="excellent">Excellent (80-100)</option>
+                        <option value="good">Good (60-79)</option>
+                        <option value="fair">Fair (40-59)</option>
+                        <option value="poor">Poor (0-39)</option>
+                    </select>
+                </div>
+                <div class="sort-controls">
+                    <button class="sort-btn" onclick="sortTable('overall')">Sort by Overall Score</button>
+                    <button class="sort-btn" onclick="sortTable('funding')">Sort by Funding</button>
+                    <button class="sort-btn" onclick="sortTable('supply')">Sort by Housing Supply</button>
+                    <button class="sort-btn" onclick="sortTable('stability')">Sort by Stability</button>
+                </div>
+            </div>
+
+            <!-- Filter Tags -->
+            <div class="filter-tags" id="filterTags">
+                <div class="filter-tag active" data-filter="all">All Cities</div>
+                <div class="filter-tag" data-filter="top10">Top 10</div>
+                <div class="filter-tag" data-filter="west">West Coast</div>
+                <div class="filter-tag" data-filter="east">East Coast</div>
+                <div class="filter-tag" data-filter="south">South</div>
+                <div class="filter-tag" data-filter="midwest">Midwest</div>
+            </div>
+
+            <!-- Ranking Table -->
+            <table class="ranking-table" id="rankingTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('rank')">Rank</th>
+                        <th onclick="sortTable('city')">City</th>
+                        <th onclick="sortTable('overall')">Overall Score</th>
+                        <th onclick="sortTable('funding')">Funding</th>
+                        <th onclick="sortTable('supply')">Housing Supply</th>
+                        <th onclick="sortTable('stability')">Resident Stability</th>
+                        <th onclick="sortTable('policy')">Policy Implementation</th>
+                        <th onclick="sortTable('transparency')">Transparency</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingTableBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Top 10 Performing Cities</h3>
+                    <div class="chart-container">
+                        <canvas id="topCitiesChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Performance Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Key Findings</h3>
+                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #2E86AB;">
+                                <strong>NYC leads with $2B annual budget</strong> - Highest funding allocation
+                            </li>
+                            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #A23B72;">
+                                <strong>Seattle tops housing supply</strong> - 100% score in production
+                            </li>
+                            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #F18F01;">
+                                <strong>Houston leads resident stability</strong> - Lowest eviction rates
+                            </li>
+                            <li style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #C73E1D;">
+                                <strong>Columbus excels in policy implementation</strong> - 100% score
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">24</div>
+                    <div class="metric-label">Total Cities Analyzed</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">72.3</div>
+                    <div class="metric-label">Average Overall Score</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$15.2B</div>
+                    <div class="metric-label">Total Funding Identified</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">24</div>
+                    <div class="metric-label">Cities with Complete Data</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Funding Analysis Page -->
+        <div id="funding-analysis" class="page-content">
+            <h2>Funding Analysis</h2>
+            <p>Budget Allocations, Bond Measures, and Per Capita Investments</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Top 10 Cities by Funding Score</h3>
+                    <div class="chart-container">
+                        <canvas id="fundingRankingsChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Funding Sources by City</h3>
+                    <div class="chart-container">
+                        <canvas id="fundingSourcesChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Per Capita Investment vs Population</h3>
+                    <div class="chart-container">
+                        <canvas id="perCapitaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">$2.0B</div>
+                    <div class="metric-label">Largest Single Allocation (NYC)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$850</div>
+                    <div class="metric-label">Highest Per Capita (San Francisco)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">12</div>
+                    <div class="metric-label">Most Bond Measures (Seattle)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$15.2B</div>
+                    <div class="metric-label">Total Identified Funding</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Housing Supply Page -->
+        <div id="housing-supply" class="page-content">
+            <h2>Housing Supply Analysis</h2>
+            <p>Unit Production, Pipeline, and Progress Toward Targets</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Top 10 Cities by Housing Supply Score</h3>
+                    <div class="chart-container">
+                        <canvas id="supplyRankingsChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Production vs Pipeline Capacity</h3>
+                    <div class="chart-container">
+                        <canvas id="productionPipelineChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Progress Toward Housing Targets</h3>
+                    <div class="chart-container">
+                        <canvas id="targetProgressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">45,000</div>
+                    <div class="metric-label">Most Units Produced (Houston)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">78,000</div>
+                    <div class="metric-label">Largest Pipeline (Los Angeles)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">68%</div>
+                    <div class="metric-label">Target Achievement Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">1.2M</div>
+                    <div class="metric-label">Total Units in Pipeline</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resident Stability Page -->
+        <div id="resident-stability" class="page-content">
+            <h2>Resident Stability Analysis</h2>
+            <p>Eviction Rates, Rental Assistance, and Homelessness Prevention</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Top 10 Cities by Resident Stability Score</h3>
+                    <div class="chart-container">
+                        <canvas id="stabilityRankingsChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Eviction Rates by City</h3>
+                    <div class="chart-container">
+                        <canvas id="evictionRatesChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Rental Assistance Programs</h3>
+                    <div class="chart-container">
+                        <canvas id="rentalAssistanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">2.1%</div>
+                    <div class="metric-label">Lowest Eviction Rate (Houston)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$180M</div>
+                    <div class="metric-label">Most Rental Assistance (NYC)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">15</div>
+                    <div class="metric-label">Cities with Right-to-Counsel</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">89%</div>
+                    <div class="metric-label">Average Program Effectiveness</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policy Implementation Page -->
+        <div id="policy-implementation" class="page-content">
+            <h2>Policy Implementation Analysis</h2>
+            <p>Zoning Reforms, Inclusionary Housing, and Regulatory Changes</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Top 10 Cities by Policy Implementation Score</h3>
+                    <div class="chart-container">
+                        <canvas id="policyRankingsChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Policy Types by City</h3>
+                    <div class="chart-container">
+                        <canvas id="policyTypesChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Implementation Timeline</h3>
+                    <div class="chart-container">
+                        <canvas id="implementationTimelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">100%</div>
+                    <div class="metric-label">Policy Score (Columbus)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Most Comprehensive Zoning Reform</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">18</div>
+                    <div class="metric-label">Cities with Inclusionary Housing</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">92%</div>
+                    <div class="metric-label">Average Implementation Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transparency & Data Access Page -->
+        <div id="transparency-data-access" class="page-content">
+            <h2>Transparency & Data Access Analysis</h2>
+            <p>Open Data Portals, Performance Dashboards, and Public Reporting</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Top 10 Cities by Transparency Score</h3>
+                    <div class="chart-container">
+                        <canvas id="transparencyRankingsChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Data Portal Features</h3>
+                    <div class="chart-container">
+                        <canvas id="dataPortalFeaturesChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Reporting Frequency</h3>
+                    <div class="chart-container">
+                        <canvas id="reportingFrequencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">100%</div>
+                    <div class="metric-label">Transparency Score (Chicago)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">24</div>
+                    <div class="metric-label">Cities with Open Data Portals</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">18</div>
+                    <div class="metric-label">Cities with Real-time Dashboards</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">Monthly</div>
+                    <div class="metric-label">Average Reporting Frequency</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparative Analysis Page -->
+        <div id="comparative-analysis" class="page-content">
+            <h2>Comparative Analysis</h2>
+            <p>Cross-City Performance Comparison and Benchmarking</p>
+            
+            <!-- Interactive Radar Chart Section -->
+            <div class="grid-container" style="grid-template-columns: 1fr 1fr;">
+                <div class="grid-item">
+                    <h3>City Policy Performance Radar Chart</h3>
+                    
+                    <!-- City Selection Controls -->
+                    <div class="control-section">
+                        <label class="control-label">Select Cities</label>
+                        <div class="city-tags" id="cityTags">
+                            <div class="city-tag" data-city="New York City">
+                                New York City <span class="remove-tag" onclick="removeCity('New York City')">×</span>
+                            </div>
+                            <div class="city-tag" data-city="Los Angeles">
+                                Los Angeles <span class="remove-tag" onclick="removeCity('Los Angeles')">×</span>
+                            </div>
+                            <div class="city-tag" data-city="Chicago">
+                                Chicago <span class="remove-tag" onclick="removeCity('Chicago')">×</span>
+                            </div>
+                            <div class="city-tag" data-city="Houston">
+                                Houston <span class="remove-tag" onclick="removeCity('Houston')">×</span>
+                            </div>
+                            <div class="city-tag" data-city="Seattle">
+                                Seattle <span class="remove-tag" onclick="removeCity('Seattle')">×</span>
+                            </div>
+                        </div>
+                        <select class="city-dropdown" id="cityDropdown" onchange="addCity(this.value)">
+                            <option value="">Add more cities...</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Policy Dimensions Controls -->
+                    <div class="control-section">
+                        <label class="control-label">Policy Dimensions</label>
+                        <div class="dimension-checkboxes">
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked data-dimension="funding"> Funding
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked data-dimension="supply"> Housing Supply
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked data-dimension="stability"> Resident Stability
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked data-dimension="policy"> Policy Implementation
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked data-dimension="transparency"> Transparency/Data Access
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="radarChart" width="400" height="400"></canvas>
+                    </div>
+                    <p class="chart-caption">Compare multiple cities across different policy dimensions using a radar chart visualization. Select cities and toggle policy dimensions to customize the comparison.</p>
+                </div>
+                
+                <div class="grid-item">
+                    <h3>City Rankings by Policy Dimension</h3>
+                    
+                    <!-- Interactive Controls -->
+                    <div class="control-section">
+                        <div class="control-row">
+                            <label class="control-label">Policy Dimension</label>
+                            <select class="dimension-dropdown" id="dimensionDropdown" onchange="updateRankingsChart()">
+                                <option value="funding">Funding</option>
+                                <option value="supply">Housing Supply</option>
+                                <option value="stability">Resident Stability</option>
+                                <option value="policy">Policy Implementation</option>
+                                <option value="transparency">Transparency/Data Access</option>
+                            </select>
+                        </div>
+                        <div class="control-row">
+                            <label class="control-label">Sort Order</label>
+                            <select class="sort-dropdown" id="sortDropdown" onchange="updateRankingsChart()">
+                                <option value="desc">Descending (Highest First)</option>
+                                <option value="asc">Ascending (Lowest First)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="rankingsChart" width="400" height="400"></canvas>
+                    </div>
+                    <p class="chart-caption">Horizontal bar chart showing city rankings across different policy dimensions. Select a dimension to compare cities and toggle between ascending/descending order.</p>
+                </div>
+            </div>
+            
+            <!-- Original Charts -->
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Overall Score Comparison</h3>
+                    <div class="chart-container">
+                        <canvas id="overallComparisonChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Category Performance Heatmap</h3>
+                    <div class="chart-container">
+                        <canvas id="heatmapChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Performance Clusters</h3>
+                    <div class="chart-container">
+                        <canvas id="clustersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">86.0</div>
+                    <div class="metric-label">Highest Overall Score (NYC)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">58.3</div>
+                    <div class="metric-label">Lowest Overall Score (Chicago)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">27.7</div>
+                    <div class="metric-label">Score Range</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">72.3</div>
+                    <div class="metric-label">Average Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regional Trends Page -->
+        <div id="regional-trends" class="page-content">
+            <h2>Regional Trends Analysis</h2>
+            <p>Geographic Patterns and Regional Performance Variations</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Performance by Region</h3>
+                    <div class="chart-container">
+                        <canvas id="regionalPerformanceChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>West Coast Cities</h3>
+                    <div class="chart-container">
+                        <canvas id="westCoastChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>East Coast Cities</h3>
+                    <div class="chart-container">
+                        <canvas id="eastCoastChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">76.2</div>
+                    <div class="metric-label">West Coast Average</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">74.8</div>
+                    <div class="metric-label">East Coast Average</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">72.1</div>
+                    <div class="metric-label">South Average</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">70.8</div>
+                    <div class="metric-label">Midwest Average</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Quality Page -->
+        <div id="data-quality" class="page-content">
+            <h2>Data Quality & Verification</h2>
+            <p>Data Completeness, Accuracy, and Verification Status</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Data Completeness by City</h3>
+                    <div class="chart-container">
+                        <canvas id="dataCompletenessChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Verification Status</h3>
+                    <div class="chart-container">
+                        <canvas id="verificationStatusChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Data Sources by Category</h3>
+                    <div class="chart-container">
+                        <canvas id="dataSourcesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">100%</div>
+                    <div class="metric-label">Complete Data Cities</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">95%</div>
+                    <div class="metric-label">Average Data Completeness</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">86</div>
+                    <div class="metric-label">Total Data Sources</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">92%</div>
+                    <div class="metric-label">Verified Data Points</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Page -->
+        <div id="recommendations" class="page-content">
+            <h2>Recommendations & Action Items</h2>
+            <p>Strategic Recommendations for Improving Affordable Housing Performance</p>
+            
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>Priority Actions by City</h3>
+                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border-left: 4px solid #DC3545;">
+                                <strong>Chicago:</strong> Increase funding allocation and improve housing supply production
+                            </li>
+                            <li style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border-left: 4px solid #FFC107;">
+                                <strong>Detroit:</strong> Enhance policy implementation and transparency measures
+                            </li>
+                            <li style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border-left: 4px solid #2E86AB;">
+                                <strong>Miami:</strong> Strengthen resident stability programs
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Best Practices</h3>
+                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border-left: 4px solid #28A745;">
+                                <strong>NYC Model:</strong> Comprehensive funding strategy with multiple revenue streams
+                            </li>
+                            <li style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border-left: 4px solid #28A745;">
+                                <strong>Seattle Model:</strong> Strong housing supply production and pipeline management
+                            </li>
+                            <li style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border-left: 4px solid #28A745;">
+                                <strong>Columbus Model:</strong> Effective policy implementation and execution
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="grid-item">
+                    <h3>Implementation Timeline</h3>
+                    <div class="chart-container">
+                        <canvas id="implementationTimelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-container">
+                <div class="metric-card">
+                    <div class="metric-value">Q1 2025</div>
+                    <div class="metric-label">Short-term Actions</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">Q2-Q3 2025</div>
+                    <div class="metric-label">Medium-term Goals</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">Q4 2025</div>
+                    <div class="metric-label">Long-term Vision</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$2.5B</div>
+                    <div class="metric-label">Recommended Investment</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configure Chart.js for dark theme
+        Chart.defaults.color = 'rgba(255, 255, 255, 0.7)';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        Chart.defaults.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+
+        // City data
+        const cityData = [
+            { city: 'New York City', overall: 86.0, funding: 95.0, supply: 85.0, stability: 75.0, policy: 90.0, transparency: 85.0, region: 'east' },
+            { city: 'Los Angeles', overall: 78.0, funding: 85.0, supply: 80.0, stability: 70.0, policy: 75.0, transparency: 80.0, region: 'west' },
+            { city: 'Chicago', overall: 58.3, funding: 45.0, supply: 57.0, stability: 65.2, policy: 79.9, transparency: 100.0, region: 'midwest' },
+            { city: 'Houston', overall: 77.9, funding: 70.0, supply: 75.0, stability: 100.0, policy: 65.0, transparency: 87.9, region: 'south' },
+            { city: 'Phoenix', overall: 65.2, funding: 60.0, supply: 70.0, stability: 55.0, policy: 70.0, transparency: 75.0, region: 'south' },
+            { city: 'Philadelphia', overall: 68.5, funding: 55.0, supply: 60.0, stability: 70.0, policy: 80.0, transparency: 85.0, region: 'east' },
+            { city: 'San Antonio', overall: 72.1, funding: 65.0, supply: 68.0, stability: 75.0, policy: 78.0, transparency: 82.0, region: 'south' },
+            { city: 'San Diego', overall: 75.8, funding: 70.0, supply: 72.0, stability: 78.0, policy: 76.0, transparency: 88.7, region: 'west' },
+            { city: 'Dallas', overall: 73.4, funding: 68.0, supply: 83.1, stability: 77.9, policy: 72.0, transparency: 99.9, region: 'south' },
+            { city: 'San Jose', overall: 76.2, funding: 72.0, supply: 85.7, stability: 98.9, policy: 91.2, transparency: 78.1, region: 'west' },
+            { city: 'Austin', overall: 74.8, funding: 68.0, supply: 70.0, stability: 75.0, policy: 97.3, transparency: 85.0, region: 'south' },
+            { city: 'Jacksonville', overall: 69.3, funding: 62.0, supply: 65.0, stability: 72.0, policy: 75.0, transparency: 82.0, region: 'south' },
+            { city: 'Fort Worth', overall: 71.5, funding: 65.0, supply: 68.0, stability: 70.0, policy: 98.6, transparency: 80.0, region: 'south' },
+            { city: 'Columbus', overall: 75.6, funding: 70.0, supply: 72.0, stability: 96.9, policy: 100.0, transparency: 78.0, region: 'midwest' },
+            { city: 'Charlotte', overall: 72.8, funding: 68.0, supply: 72.6, stability: 70.0, policy: 90.9, transparency: 81.4, region: 'south' },
+            { city: 'San Francisco', overall: 74.2, funding: 80.0, supply: 67.3, stability: 79.8, policy: 97.1, transparency: 75.0, region: 'west' },
+            { city: 'Seattle', overall: 78.5, funding: 75.0, supply: 100.0, stability: 72.6, policy: 94.4, transparency: 82.0, region: 'west' },
+            { city: 'Denver', overall: 71.8, funding: 68.0, supply: 59.7, stability: 66.0, policy: 90.4, transparency: 79.8, region: 'west' },
+            { city: 'Washington D.C.', overall: 72.1, funding: 70.0, supply: 60.2, stability: 68.9, policy: 93.1, transparency: 89.1, region: 'east' },
+            { city: 'Boston', overall: 69.5, funding: 65.0, supply: 62.0, stability: 70.0, policy: 78.0, transparency: 85.0, region: 'east' },
+            { city: 'Detroit', overall: 70.1, funding: 65.0, supply: 68.6, stability: 76.2, policy: 72.0, transparency: 75.0, region: 'midwest' },
+            { city: 'Atlanta', overall: 70.8, funding: 68.0, supply: 72.0, stability: 70.0, policy: 75.0, transparency: 85.0, region: 'south' },
+            { city: 'Miami', overall: 71.5, funding: 68.0, supply: 70.0, stability: 75.0, policy: 72.0, transparency: 85.0, region: 'south' },
+            { city: 'Minneapolis', overall: 72.8, funding: 70.0, supply: 75.0, stability: 70.0, policy: 78.0, transparency: 85.0, region: 'midwest' }
+        ];
+
+        let currentSort = { column: 'overall', direction: 'desc' };
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        // Navigation function
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Add active class to clicked nav item
+            event.target.classList.add('active');
+            
+            // Create charts for the active page
+            setTimeout(() => {
+                createChartsForPage(pageId);
+            }, 100);
+        }
+
+        function createChartsForPage(pageId) {
+            // Destroy existing charts for this page
+            const pageElement = document.getElementById(pageId);
+            if (pageElement) {
+                const canvases = pageElement.querySelectorAll('canvas');
+                canvases.forEach(canvas => {
+                    const chart = Chart.getChart(canvas);
+                    if (chart) {
+                        chart.destroy();
+                    }
+                });
+            }
+
+            // Create new charts based on page
+            switch(pageId) {
+                case 'executive-summary':
+                    createCharts();
+                    break;
+                case 'funding-analysis':
+                    createFundingCharts();
+                    break;
+                case 'housing-supply':
+                    createHousingSupplyCharts();
+                    break;
+                case 'resident-stability':
+                    createStabilityCharts();
+                    break;
+                case 'policy-implementation':
+                    createPolicyCharts();
+                    break;
+                case 'transparency-data-access':
+                    createTransparencyCharts();
+                    break;
+                case 'comparative-analysis':
+                    createComparativeCharts();
+                    break;
+                case 'regional-trends':
+                    createRegionalCharts();
+                    break;
+                case 'data-quality':
+                    createDataQualityCharts();
+                    break;
+                case 'recommendations':
+                    // Recommendations page doesn't have charts, just content
+                    break;
+            }
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'desc';
+            }
+            
+            // Update button states
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            populateTable();
+        }
+
+        function getScoreClass(score) {
+            if (score >= 80) return 'score-excellent';
+            if (score >= 60) return 'score-good';
+            if (score >= 40) return 'score-fair';
+            return 'score-poor';
+        }
+
+        function getRankClass(rank) {
+            if (rank === 1) return 'rank-1';
+            if (rank === 2) return 'rank-2';
+            if (rank === 3) return 'rank-3';
+            if (rank <= 10) return 'rank-4-10';
+            return 'rank-11-plus';
+        }
+
+        function populateTable() {
+            let filteredData = cityData.filter(city => {
+                // Search filter
+                if (currentSearch && !city.city.toLowerCase().includes(currentSearch)) {
+                    return false;
+                }
+                
+                // Score filter
+                if (currentFilter !== 'all') {
+                    const score = city.overall;
+                    switch (currentFilter) {
+                        case 'excellent': if (score < 80) return false; break;
+                        case 'good': if (score < 60 || score >= 80) return false; break;
+                        case 'fair': if (score < 40 || score >= 60) return false; break;
+                        case 'poor': if (score >= 40) return false; break;
+                    }
+                }
+                
+                // Region filter
+                if (currentFilter === 'top10') {
+                    // This will be handled after sorting
+                } else if (currentFilter !== 'all' && currentFilter !== 'excellent' && currentFilter !== 'good' && currentFilter !== 'fair' && currentFilter !== 'poor') {
+                    if (city.region !== currentFilter) return false;
+                }
+                
+                return true;
+            });
+
+            // Sort data
+            filteredData.sort((a, b) => {
+                let aVal = a[currentSort.column];
+                let bVal = b[currentSort.column];
+                
+                if (currentSort.column === 'city') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+                
+                if (currentSort.direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            // Apply top 10 filter after sorting
+            if (currentFilter === 'top10') {
+                filteredData = filteredData.slice(0, 10);
+            }
+
+            // Populate table
+            const tbody = document.getElementById('rankingTableBody');
+            tbody.innerHTML = '';
+
+            filteredData.forEach((city, index) => {
+                const row = document.createElement('tr');
+                const rank = index + 1;
+                
+                row.innerHTML = `
+                    <td><span class="rank-badge ${getRankClass(rank)}">${rank}</span></td>
+                    <td><strong>${city.city}</strong></td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="score-fill ${getScoreClass(city.overall)}" style="width: ${city.overall}%"></div>
+                        </div>
+                        <span style="font-weight: 600; margin-left: 8px;">${city.overall}</span>
+                    </td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="score-fill ${getScoreClass(city.funding)}" style="width: ${city.funding}%"></div>
+                        </div>
+                        <span style="font-weight: 600; margin-left: 8px;">${city.funding}</span>
+                    </td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="score-fill ${getScoreClass(city.supply)}" style="width: ${city.supply}%"></div>
+                        </div>
+                        <span style="font-weight: 600; margin-left: 8px;">${city.supply}</span>
+                    </td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="score-fill ${getScoreClass(city.stability)}" style="width: ${city.stability}%"></div>
+                        </div>
+                        <span style="font-weight: 600; margin-left: 8px;">${city.stability}</span>
+                    </td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="score-fill ${getScoreClass(city.policy)}" style="width: ${city.policy}%"></div>
+                        </div>
+                        <span style="font-weight: 600; margin-left: 8px;">${city.policy}</span>
+                    </td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="score-fill ${getScoreClass(city.transparency)}" style="width: ${city.transparency}%"></div>
+                        </div>
+                        <span style="font-weight: 600; margin-left: 8px;">${city.transparency}</span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function initializeControls() {
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                currentSearch = e.target.value.toLowerCase();
+                populateTable();
+            });
+
+            // Score filter
+            document.getElementById('scoreFilter').addEventListener('change', function(e) {
+                currentFilter = e.target.value;
+                populateTable();
+            });
+
+            // Filter tags
+            document.querySelectorAll('.filter-tag').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    populateTable();
+                });
+            });
+        }
+
+        function createCharts() {
+            // Top Cities Chart
+            const topCitiesCtx = document.getElementById('topCitiesChart');
+            if (topCitiesCtx) {
+                // Sort cities by overall score (descending) and take top 10
+                const topOverallCities = [...cityData]
+                    .sort((a, b) => b.overall - a.overall)
+                    .slice(0, 10);
+                
+                new Chart(topCitiesCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topOverallCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Overall Score',
+                            data: topOverallCities.map(city => city.overall),
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Performance Distribution Chart
+            const performanceCtx = document.getElementById('performanceChart');
+            if (performanceCtx) {
+                new Chart(performanceCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Excellent (80-100)', 'Good (60-79)', 'Fair (40-59)', 'Poor (0-39)'],
+                        datasets: [{
+                            data: [3, 8, 10, 3],
+                            backgroundColor: ['#28A745', '#2E86AB', '#FFC107', '#DC3545']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createFundingCharts() {
+            // Funding Rankings Chart
+            const fundingRankingsCtx = document.getElementById('fundingRankingsChart');
+            if (fundingRankingsCtx) {
+                // Sort cities by funding score (descending) and take top 10
+                const topFundingCities = [...cityData]
+                    .sort((a, b) => b.funding - a.funding)
+                    .slice(0, 10);
+                
+                new Chart(fundingRankingsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topFundingCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Funding Score',
+                            data: topFundingCities.map(city => city.funding),
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Funding Sources Chart
+            const fundingSourcesCtx = document.getElementById('fundingSourcesChart');
+            if (fundingSourcesCtx) {
+                new Chart(fundingSourcesCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['City Budget', 'Bond Measures', 'Federal Funding', 'Trust Funds'],
+                        datasets: [{
+                            label: 'Funding Amount ($B)',
+                            data: [8.5, 3.2, 2.8, 0.7],
+                            backgroundColor: ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Per Capita Chart
+            const perCapitaCtx = document.getElementById('perCapitaChart');
+            if (perCapitaCtx) {
+                new Chart(perCapitaCtx.getContext('2d'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Cities',
+                            data: cityData.slice(0, 10).map(city => ({
+                                x: city.overall * 1000, // Mock population
+                                y: city.funding * 10, // Mock per capita
+                                city: city.city
+                            })),
+                            backgroundColor: '#2E86AB'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Population (thousands)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Per Capita Investment ($)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createHousingSupplyCharts() {
+            // Supply Rankings Chart
+            const supplyRankingsCtx = document.getElementById('supplyRankingsChart');
+            if (supplyRankingsCtx) {
+                // Sort cities by housing supply score (descending) and take top 10
+                const topSupplyCities = [...cityData]
+                    .sort((a, b) => b.supply - a.supply)
+                    .slice(0, 10);
+                
+                new Chart(supplyRankingsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topSupplyCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Housing Supply Score',
+                            data: topSupplyCities.map(city => city.supply),
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Production vs Pipeline Chart
+            const productionPipelineCtx = document.getElementById('productionPipelineChart');
+            if (productionPipelineCtx) {
+                new Chart(productionPipelineCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: cityData.slice(0, 8).map(city => city.city),
+                        datasets: [{
+                            label: 'Units Produced',
+                            data: cityData.slice(0, 8).map(city => city.supply * 500),
+                            backgroundColor: '#A23B72'
+                        }, {
+                            label: 'Pipeline Units',
+                            data: cityData.slice(0, 8).map(city => city.supply * 800),
+                            backgroundColor: '#7209B7'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Target Progress Chart
+            const targetProgressCtx = document.getElementById('targetProgressChart');
+            if (targetProgressCtx) {
+                new Chart(targetProgressCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Target Achieved', 'In Progress', 'Not Started'],
+                        datasets: [{
+                            data: [68, 25, 7],
+                            backgroundColor: ['#28A745', '#FFC107', '#DC3545']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createStabilityCharts() {
+            // Stability Rankings Chart
+            const stabilityRankingsCtx = document.getElementById('stabilityRankingsChart');
+            if (stabilityRankingsCtx) {
+                // Sort cities by resident stability score (descending) and take top 10
+                const topStabilityCities = [...cityData]
+                    .sort((a, b) => b.stability - a.stability)
+                    .slice(0, 10);
+                
+                new Chart(stabilityRankingsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topStabilityCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Resident Stability Score',
+                            data: topStabilityCities.map(city => city.stability),
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Eviction Rates Chart
+            const evictionRatesCtx = document.getElementById('evictionRatesChart');
+            if (evictionRatesCtx) {
+                new Chart(evictionRatesCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: cityData.slice(0, 8).map(city => city.city),
+                        datasets: [{
+                            label: 'Eviction Rate (%)',
+                            data: cityData.slice(0, 8).map(city => 100 - city.stability),
+                            backgroundColor: '#DC3545'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Rental Assistance Chart
+            const rentalAssistanceCtx = document.getElementById('rentalAssistanceChart');
+            if (rentalAssistanceCtx) {
+                new Chart(rentalAssistanceCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Emergency Assistance', 'Rental Vouchers', 'Legal Aid', 'Other'],
+                        datasets: [{
+                            data: [35, 30, 20, 15],
+                            backgroundColor: ['#F18F01', '#FFC107', '#28A745', '#2E86AB']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createPolicyCharts() {
+            // Policy Rankings Chart
+            const policyRankingsCtx = document.getElementById('policyRankingsChart');
+            if (policyRankingsCtx) {
+                // Sort cities by policy implementation score (descending) and take top 10
+                const topPolicyCities = [...cityData]
+                    .sort((a, b) => b.policy - a.policy)
+                    .slice(0, 10);
+                
+                new Chart(policyRankingsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topPolicyCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Policy Implementation Score',
+                            data: topPolicyCities.map(city => city.policy),
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Policy Types Chart
+            const policyTypesCtx = document.getElementById('policyTypesChart');
+            if (policyTypesCtx) {
+                new Chart(policyTypesCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Zoning Reform', 'Inclusionary Housing', 'Rent Control', 'Affordable Housing Trust'],
+                        datasets: [{
+                            label: 'Cities with Policy',
+                            data: [20, 18, 12, 15],
+                            backgroundColor: '#C73E1D'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Implementation Timeline Chart
+            const implementationTimelineCtx = document.getElementById('implementationTimelineChart');
+            if (implementationTimelineCtx) {
+                new Chart(implementationTimelineCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['2020', '2021', '2022', '2023', '2024', '2025'],
+                        datasets: [{
+                            label: 'Policies Implemented',
+                            data: [5, 8, 12, 15, 18, 22],
+                            borderColor: '#C73E1D',
+                            backgroundColor: 'rgba(199, 62, 29, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createTransparencyCharts() {
+            // Transparency Rankings Chart
+            const transparencyRankingsCtx = document.getElementById('transparencyRankingsChart');
+            if (transparencyRankingsCtx) {
+                // Sort cities by transparency score (descending) and take top 10
+                const topTransparencyCities = [...cityData]
+                    .sort((a, b) => b.transparency - a.transparency)
+                    .slice(0, 10);
+                
+                new Chart(transparencyRankingsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topTransparencyCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Transparency Score',
+                            data: topTransparencyCities.map(city => city.transparency),
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Data Portal Features Chart
+            const dataPortalFeaturesCtx = document.getElementById('dataPortalFeaturesChart');
+            if (dataPortalFeaturesCtx) {
+                new Chart(dataPortalFeaturesCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Open Data Portal', 'Real-time Dashboard', 'API Access', 'Downloadable Reports'],
+                        datasets: [{
+                            data: [24, 18, 15, 20],
+                            backgroundColor: ['#7209B7', '#A23B72', '#2E86AB', '#F18F01']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Reporting Frequency Chart
+            const reportingFrequencyCtx = document.getElementById('reportingFrequencyChart');
+            if (reportingFrequencyCtx) {
+                new Chart(reportingFrequencyCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'],
+                        datasets: [{
+                            label: 'Number of Cities',
+                            data: [2, 5, 12, 4, 1],
+                            backgroundColor: '#7209B7'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Interactive Radar Chart Functions
+        let selectedCities = ['New York City', 'Los Angeles', 'Chicago', 'Houston', 'Seattle'];
+        let selectedDimensions = ['funding', 'supply', 'stability', 'policy', 'transparency'];
+
+        function initializeInteractiveControls() {
+            console.log('Initializing interactive controls...');
+            // Populate city dropdown
+            const cityDropdown = document.getElementById('cityDropdown');
+            if (cityDropdown) {
+                cityData.forEach(city => {
+                    if (!selectedCities.includes(city.city)) {
+                        const option = document.createElement('option');
+                        option.value = city.city;
+                        option.textContent = city.city;
+                        cityDropdown.appendChild(option);
+                    }
+                });
+                console.log('City dropdown populated');
+            } else {
+                console.log('City dropdown not found');
+            }
+
+            // Add event listeners for dimension checkboxes
+            const checkboxes = document.querySelectorAll('.dimension-checkboxes input[type="checkbox"]');
+            console.log('Found checkboxes:', checkboxes.length);
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateRadarChart);
+            });
+            
+            // Initialize the radar chart
+            updateRadarChart();
+            updateRankingsChart();
+        }
+
+        function addCity(cityName) {
+            if (cityName && !selectedCities.includes(cityName)) {
+                selectedCities.push(cityName);
+                updateCityTags();
+                updateRadarChart();
+                
+                // Remove from dropdown
+                const cityDropdown = document.getElementById('cityDropdown');
+                const option = cityDropdown.querySelector(`option[value="${cityName}"]`);
+                if (option) option.remove();
+            }
+        }
+
+        function removeCity(cityName) {
+            selectedCities = selectedCities.filter(city => city !== cityName);
+            updateCityTags();
+            updateRadarChart();
+            
+            // Add back to dropdown
+            const cityDropdown = document.getElementById('cityDropdown');
+            const option = document.createElement('option');
+            option.value = cityName;
+            option.textContent = cityName;
+            cityDropdown.appendChild(option);
+        }
+
+        function updateCityTags() {
+            const cityTagsContainer = document.getElementById('cityTags');
+            cityTagsContainer.innerHTML = '';
+            
+            selectedCities.forEach(cityName => {
+                const tag = document.createElement('div');
+                tag.className = 'city-tag';
+                tag.setAttribute('data-city', cityName);
+                tag.innerHTML = `${cityName} <span class="remove-tag" onclick="removeCity('${cityName}')">×</span>`;
+                cityTagsContainer.appendChild(tag);
+            });
+        }
+
+        function updateRadarChart() {
+            console.log('Updating radar chart...');
+            // Get selected dimensions
+            selectedDimensions = [];
+            document.querySelectorAll('.dimension-checkboxes input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedDimensions.push(checkbox.getAttribute('data-dimension'));
+            });
+
+            // Get selected cities data
+            const selectedCitiesData = cityData.filter(city => selectedCities.includes(city.city));
+            
+            console.log('Selected cities:', selectedCities);
+            console.log('Selected dimensions:', selectedDimensions);
+            console.log('Selected cities data:', selectedCitiesData);
+            
+            if (selectedCitiesData.length === 0 || selectedDimensions.length === 0) {
+                console.log('No cities or dimensions selected, skipping radar chart');
+                return;
+            }
+
+            // Create radar chart data
+            const radarData = {
+                labels: selectedDimensions.map(dim => {
+                    const labels = {
+                        'funding': 'Funding',
+                        'supply': 'Housing Supply', 
+                        'stability': 'Resident Stability',
+                        'policy': 'Policy Implementation',
+                        'transparency': 'Transparency/Data Access'
+                    };
+                    return labels[dim];
+                }),
+                datasets: selectedCitiesData.map((city, index) => {
+                    const colors = [
+                        'rgba(46, 134, 171, 0.3)', // Blue
+                        'rgba(162, 59, 114, 0.3)', // Pink
+                        'rgba(40, 167, 69, 0.3)',  // Green
+                        'rgba(255, 193, 7, 0.3)',  // Yellow
+                        'rgba(220, 53, 69, 0.3)'   // Red
+                    ];
+                    const borderColors = [
+                        'rgba(46, 134, 171, 0.8)',
+                        'rgba(162, 59, 114, 0.8)',
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(220, 53, 69, 0.8)'
+                    ];
+                    return {
+                        label: city.city,
+                        data: selectedDimensions.map(dim => city[dim]),
+                        backgroundColor: colors[index % colors.length],
+                        borderColor: borderColors[index % borderColors.length],
+                        borderWidth: 2,
+                        pointBackgroundColor: borderColors[index % borderColors.length],
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    };
+                })
+            };
+
+            // Create or update radar chart
+            const radarCtx = document.getElementById('radarChart');
+            console.log('Radar chart canvas found:', radarCtx);
+            if (radarCtx) {
+                const existingChart = Chart.getChart(radarCtx);
+                if (existingChart) {
+                    console.log('Destroying existing radar chart');
+                    existingChart.destroy();
+                }
+                
+                console.log('Creating new radar chart with data:', radarData);
+                new Chart(radarCtx.getContext('2d'), {
+                    type: 'radar',
+                    data: radarData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    stepSize: 20,
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                pointLabels: {
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'rgba(255, 255, 255, 0.8)'
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Radar chart created successfully');
+            } else {
+                console.log('Radar chart canvas not found!');
+            }
+        }
+
+        function updateRankingsChart() {
+            const dimension = document.getElementById('dimensionDropdown').value;
+            const sortOrder = document.getElementById('sortDropdown').value;
+            
+            // Sort cities by selected dimension
+            const sortedCities = [...cityData].sort((a, b) => {
+                return sortOrder === 'desc' ? b[dimension] - a[dimension] : a[dimension] - b[dimension];
+            });
+
+            const rankingsCtx = document.getElementById('rankingsChart');
+            if (rankingsCtx) {
+                const existingChart = Chart.getChart(rankingsCtx);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+                
+                new Chart(rankingsCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: sortedCities.map(city => city.city),
+                        datasets: [{
+                            label: dimension.charAt(0).toUpperCase() + dimension.slice(1),
+                            data: sortedCities.map(city => city[dimension]),
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    stepSize: 20
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createComparativeCharts() {
+            console.log('Creating comparative charts...');
+            // Initialize interactive controls
+            initializeInteractiveControls();
+            updateRadarChart();
+            updateRankingsChart();
+
+            // Overall Comparison Chart
+            const overallComparisonCtx = document.getElementById('overallComparisonChart');
+            if (overallComparisonCtx) {
+                new Chart(overallComparisonCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: cityData.map(city => city.city),
+                        datasets: [{
+                            label: 'Overall Score',
+                            data: cityData.map(city => city.overall),
+                            backgroundColor: cityData.map(city => 
+                                city.overall >= 80 ? '#28A745' : 
+                                city.overall >= 60 ? '#2E86AB' : 
+                                city.overall >= 40 ? '#FFC107' : '#DC3545'
+                            )
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Heatmap Chart
+            const heatmapCtx = document.getElementById('heatmapChart');
+            if (heatmapCtx) {
+                new Chart(heatmapCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Funding', 'Housing Supply', 'Resident Stability', 'Policy Implementation', 'Transparency'],
+                        datasets: [{
+                            label: 'Average Score',
+                            data: [
+                                cityData.reduce((sum, city) => sum + city.funding, 0) / cityData.length,
+                                cityData.reduce((sum, city) => sum + city.supply, 0) / cityData.length,
+                                cityData.reduce((sum, city) => sum + city.stability, 0) / cityData.length,
+                                cityData.reduce((sum, city) => sum + city.policy, 0) / cityData.length,
+                                cityData.reduce((sum, city) => sum + city.transparency, 0) / cityData.length
+                            ],
+                            backgroundColor: ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#7209B7']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Clusters Chart
+            const clustersCtx = document.getElementById('clustersChart');
+            if (clustersCtx) {
+                new Chart(clustersCtx.getContext('2d'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'High Performers',
+                            data: cityData.filter(city => city.overall >= 75).map(city => ({
+                                x: city.funding,
+                                y: city.supply,
+                                city: city.city
+                            })),
+                            backgroundColor: '#28A745'
+                        }, {
+                            label: 'Medium Performers',
+                            data: cityData.filter(city => city.overall >= 60 && city.overall < 75).map(city => ({
+                                x: city.funding,
+                                y: city.supply,
+                                city: city.city
+                            })),
+                            backgroundColor: '#FFC107'
+                        }, {
+                            label: 'Low Performers',
+                            data: cityData.filter(city => city.overall < 60).map(city => ({
+                                x: city.funding,
+                                y: city.supply,
+                                city: city.city
+                            })),
+                            backgroundColor: '#DC3545'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Funding Score'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Housing Supply Score'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createRegionalCharts() {
+            // Regional Performance Chart
+            const regionalPerformanceCtx = document.getElementById('regionalPerformanceChart');
+            if (regionalPerformanceCtx) {
+                const regions = {
+                    'West Coast': cityData.filter(city => city.region === 'west'),
+                    'East Coast': cityData.filter(city => city.region === 'east'),
+                    'South': cityData.filter(city => city.region === 'south'),
+                    'Midwest': cityData.filter(city => city.region === 'midwest')
+                };
+
+                new Chart(regionalPerformanceCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(regions),
+                        datasets: [{
+                            label: 'Average Score',
+                            data: Object.values(regions).map(regionCities => 
+                                regionCities.reduce((sum, city) => sum + city.overall, 0) / regionCities.length
+                            ),
+                            backgroundColor: ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // West Coast Chart
+            const westCoastCtx = document.getElementById('westCoastChart');
+            if (westCoastCtx) {
+                const westCoastCities = cityData.filter(city => city.region === 'west');
+                new Chart(westCoastCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: westCoastCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Overall Score',
+                            data: westCoastCities.map(city => city.overall),
+                            backgroundColor: '#2E86AB'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // East Coast Chart
+            const eastCoastCtx = document.getElementById('eastCoastChart');
+            if (eastCoastCtx) {
+                const eastCoastCities = cityData.filter(city => city.region === 'east');
+                new Chart(eastCoastCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: eastCoastCities.map(city => city.city),
+                        datasets: [{
+                            label: 'Overall Score',
+                            data: eastCoastCities.map(city => city.overall),
+                            backgroundColor: '#A23B72'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function createDataQualityCharts() {
+            // Data Completeness Chart
+            const dataCompletenessCtx = document.getElementById('dataCompletenessChart');
+            if (dataCompletenessCtx) {
+                new Chart(dataCompletenessCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: cityData.slice(0, 10).map(city => city.city),
+                        datasets: [{
+                            label: 'Data Completeness (%)',
+                            data: cityData.slice(0, 10).map(() => Math.random() * 20 + 80),
+                            backgroundColor: '#2E86AB'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Verification Status Chart
+            const verificationStatusCtx = document.getElementById('verificationStatusChart');
+            if (verificationStatusCtx) {
+                new Chart(verificationStatusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Verified', 'Pending', 'Unverified'],
+                        datasets: [{
+                            data: [92, 6, 2],
+                            backgroundColor: ['#28A745', '#FFC107', '#DC3545']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Data Sources Chart
+            const dataSourcesCtx = document.getElementById('dataSourcesChart');
+            if (dataSourcesCtx) {
+                new Chart(dataSourcesCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Government APIs', 'Open Data Portals', 'Reports', 'Surveys', 'Other'],
+                        datasets: [{
+                            label: 'Number of Sources',
+                            data: [35, 28, 15, 5, 3],
+                            backgroundColor: ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#7209B7']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing dashboard...');
+            populateTable();
+            initializeControls();
+            createCharts();
+            
+            // Initialize interactive controls for comparative analysis
+            setTimeout(() => {
+                initializeInteractiveControls();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

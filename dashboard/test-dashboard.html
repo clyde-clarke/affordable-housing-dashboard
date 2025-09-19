@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .test-button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+        .test-result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Data Loading</h2>
+        <button class="test-button" onclick="testDataLoading()">Test Data Loading</button>
+        <div id="dataResult" class="test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Table Population</h2>
+        <button class="test-button" onclick="testTablePopulation()">Test Table Population</button>
+        <div id="tableResult" class="test-result"></div>
+        <table id="testTable">
+            <thead>
+                <tr>
+                    <th>City</th>
+                    <th>Overall Score</th>
+                    <th>Funding</th>
+                </tr>
+            </thead>
+            <tbody id="testTableBody"></tbody>
+        </table>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Sorting</h2>
+        <button class="test-button" onclick="testSorting()">Test Sorting</button>
+        <div id="sortResult" class="test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Chart Creation</h2>
+        <button class="test-button" onclick="testChartCreation()">Test Chart Creation</button>
+        <div id="chartResult" class="test-result"></div>
+        <canvas id="testChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        // Test data
+        const testCityData = [
+            { city: 'New York City', overall: 86.0, funding: 95.0, supply: 85.0, stability: 75.0, policy: 90.0, transparency: 85.0, region: 'east' },
+            { city: 'Los Angeles', overall: 78.0, funding: 85.0, supply: 80.0, stability: 70.0, policy: 75.0, transparency: 80.0, region: 'west' },
+            { city: 'Chicago', overall: 58.3, funding: 45.0, supply: 57.0, stability: 65.2, policy: 79.9, transparency: 100.0, region: 'midwest' }
+        ];
+
+        function testDataLoading() {
+            const result = document.getElementById('dataResult');
+            try {
+                result.innerHTML = `✅ Data loaded successfully! Found ${testCityData.length} cities.`;
+                console.log('Data loading test passed:', testCityData);
+            } catch (error) {
+                result.innerHTML = `❌ Data loading failed: ${error.message}`;
+                console.error('Data loading test failed:', error);
+            }
+        }
+
+        function testTablePopulation() {
+            const result = document.getElementById('tableResult');
+            const tbody = document.getElementById('testTableBody');
+            
+            try {
+                tbody.innerHTML = '';
+                testCityData.forEach(city => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${city.city}</td>
+                        <td>${city.overall}</td>
+                        <td>${city.funding}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                result.innerHTML = `✅ Table populated successfully! Added ${testCityData.length} rows.`;
+                console.log('Table population test passed');
+            } catch (error) {
+                result.innerHTML = `❌ Table population failed: ${error.message}`;
+                console.error('Table population test failed:', error);
+            }
+        }
+
+        function testSorting() {
+            const result = document.getElementById('sortResult');
+            
+            try {
+                const sortedData = [...testCityData].sort((a, b) => b.overall - a.overall);
+                const topCity = sortedData[0];
+                result.innerHTML = `✅ Sorting works! Top city: ${topCity.city} (${topCity.overall})`;
+                console.log('Sorting test passed:', sortedData);
+            } catch (error) {
+                result.innerHTML = `❌ Sorting failed: ${error.message}`;
+                console.error('Sorting test failed:', error);
+            }
+        }
+
+        function testChartCreation() {
+            const result = document.getElementById('chartResult');
+            
+            try {
+                const ctx = document.getElementById('testChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: testCityData.map(city => city.city),
+                        datasets: [{
+                            label: 'Overall Score',
+                            data: testCityData.map(city => city.overall),
+                            backgroundColor: '#2E86AB'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+                result.innerHTML = `✅ Chart created successfully!`;
+                console.log('Chart creation test passed');
+            } catch (error) {
+                result.innerHTML = `❌ Chart creation failed: ${error.message}`;
+                console.error('Chart creation test failed:', error);
+            }
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', function() {
+            console.log('Running auto-tests...');
+            testDataLoading();
+            testTablePopulation();
+            testSorting();
+            testChartCreation();
+        });
+    </script>
+</body>
+</html>

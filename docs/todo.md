@@ -1,0 +1,124 @@
+## Data Collection Progress
+
+- [x] New York City
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Los Angeles
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Chicago
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Houston
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Phoenix
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] San Antonio
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] San Diego
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Dallas
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] San Jose
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Austin
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Jacksonville
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Fort Worth
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Columbus
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Charlotte
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] San Francisco
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Seattle
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Denver
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Washington, D.C.
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] Detroit
+  - [x] Funding
+  - [x] Housing Supply
+  - [x] Resident Stability
+  - [x] Policy Implementation
+  - [x] Transparency / Data Access
+- [ ] New Orleans
+  - [ ] Funding
+  - [ ] Housing Supply
+  - [ ] Resident Stability
+  - [ ] Policy Implementation
+  - [ ] Transparency / Data Access
+
+
